@@ -29,6 +29,15 @@ def main():
     left, top = metadata['position']
     width, height = metadata['size']
     call(remote, session, remote + '.Session', 'Start')
+    active = True
+
+    def closed(*_args):
+        nonlocal active
+        active = False
+
+    subscription = bus.signal_subscribe(remote, remote + '.Session', 'Closed', session,
+                                        None, Gio.DBusSignalFlags.NONE, closed)
+    context = GLib.MainContext.default()
 
     def notify(method, signature, args):
         # Input is ordered on this connection; don't wait for the compositor between moves.
@@ -39,6 +48,12 @@ def main():
 
     try:
         for line in sys.stdin:
+            # A disconnected monitor can close the session while stdin is idle.
+            # Exit on the next input so Node recreates it against the current TV.
+            while context.pending():
+                context.iteration(False)
+            if not active:
+                break
             fields = line.split()
             if fields == ['quit']:
                 break
@@ -60,7 +75,9 @@ def main():
                     notify('NotifyPointerAxis', '(ddu)', (x * 600, y * 600, 0))
                     notify('NotifyPointerAxis', '(ddu)', (0., 0., 1))
     finally:
-        call(remote, session, remote + '.Session', 'Stop')
+        bus.signal_unsubscribe(subscription)
+        if active:
+            call(remote, session, remote + '.Session', 'Stop')
 
 
 if __name__ == '__main__':

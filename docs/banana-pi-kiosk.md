@@ -79,7 +79,7 @@ Check the server:
 
 ```bash
 systemctl --user status gulp.service
-journalctl --user -u gulp.service -n 40 --no-pager
+sudo journalctl _SYSTEMD_USER_UNIT=gulp.service -n 40 --no-pager
 ```
 
 Wait for “QR code ready” before testing phone pairing. Internet access is required for the temporary HTTPS tunnel. The current app logs a tunnel failure without necessarily exiting the Node process, so a running service alone does not prove that phone pairing is ready.
