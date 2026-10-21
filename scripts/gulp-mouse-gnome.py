@@ -28,6 +28,10 @@ def main():
                     '(ss)', (cast + '.Stream', 'Parameters'))[0]
     left, top = metadata['position']
     width, height = metadata['size']
+    display = 'org.gnome.Mutter.DisplayConfig'
+    logical = call(display, '/org/gnome/Mutter/DisplayConfig', display, 'GetCurrentState')[2]
+    scale = next((monitor[2] for monitor in logical
+                  if any(output[0] == metadata.get('output-name') for output in monitor[5])), 1.)
     call(remote, session, remote + '.Session', 'Start')
     active = True
 
@@ -37,6 +41,9 @@ def main():
 
     subscription = bus.signal_subscribe(remote, remote + '.Session', 'Closed', session,
                                         None, Gio.DBusSignalFlags.NONE, closed)
+    monitor_subscription = bus.signal_subscribe(display, display, 'MonitorsChanged',
+                                                '/org/gnome/Mutter/DisplayConfig', None,
+                                                Gio.DBusSignalFlags.NONE, closed)
     context = GLib.MainContext.default()
 
     def notify(method, signature, args):
@@ -68,14 +75,17 @@ def main():
                 if not (math.isfinite(x) and math.isfinite(y)):
                     continue
                 if fields[0] == 'move':
+                    # Mutter's input stream uses physical pixels; screen coordinates and
+                    # monitor metadata use logical pixels, including at fractional scale.
                     notify('NotifyPointerMotionAbsolute', '(sdd)',
-                           (stream, max(0., min(width - 1., x - left)),
-                            max(0., min(height - 1., y - top))))
+                           (stream, max(0., min(width - 1., x - left)) * scale,
+                            max(0., min(height - 1., y - top)) * scale))
                 else:
                     notify('NotifyPointerAxis', '(ddu)', (x * 600, y * 600, 0))
                     notify('NotifyPointerAxis', '(ddu)', (0., 0., 1))
     finally:
         bus.signal_unsubscribe(subscription)
+        bus.signal_unsubscribe(monitor_subscription)
         if active:
             call(remote, session, remote + '.Session', 'Stop')
 
