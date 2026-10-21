@@ -7,7 +7,7 @@ const qr = document.querySelector('#qr'), dot = document.querySelector('#dot'), 
 const page = document.querySelector('.tv-canvas'), accounts = document.querySelector('#accounts');
 let center, socket, retry, target, position, serverKey, scrollRow, axis, idle, idleTimer, awakeAt, screenOffset, hovered, hoveredZone, mouseDrive = false, lastMousePosition, pageSnapMax = 0;
 let localPointer = null, localUntil = 0;
-let drawFrame = null, drawnAt = 0, hoverUntil = 0;
+let drawFrame = null, drawnAt = 0, hoverUntil = 0, pointerTransform;
 function requestDraw() { drawFrame ??= requestAnimationFrame(draw); }
 const helperEvents = [], LOCAL_PRIORITY = 3000;
 const glides = new Map();
@@ -104,6 +104,7 @@ document.addEventListener('gulp:schedule', requestDraw);
 window.addEventListener('resize', syncScheduleScrollEnd);
 window.addEventListener('resize', requestDraw);
 window.addEventListener('scroll', requestDraw, true);
+document.addEventListener('transitionend', requestDraw, true);
 page.addEventListener('scroll', clampPageScroll, { passive: true });
 
 // Snap points are where each card or shelf would sit if it were first.
@@ -435,7 +436,9 @@ function draw() {
     const control = hit?.closest('a, button, input, textarea, select, summary, [role="button"]');
     const zone = hit?.closest('[data-hover]');
     const transform = `translate3d(${Math.round(x * 4) / 4}px,${Math.round(y * 4) / 4}px,0)`;
-    if (dot.style.transform !== transform) {
+    // CSSOM serializes transforms differently across Chromium versions; compare our own value.
+    if (pointerTransform !== transform) {
+      pointerTransform = transform;
       dot.style.transform = transform;
       syncMouseMove();
       // A hand-held phone never sits perfectly still; only a real move wakes the player controls.

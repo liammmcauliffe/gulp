@@ -33,6 +33,11 @@ test('local pointer priority preserves phone swipes, scrolling, and player gestu
   elements.get('pull').style.setProperty = function(name, value) { this[name] = value; };
   const fullView = { style: {}, animate() {} }, dispatched = [];
   const cursorClasses = new Set(), hitTests = [];
+  let canonicalTransform = false, transformWrites = 0, cursorTransform;
+  Object.defineProperty(elements.get('dot').style, 'transform', {
+    get: () => canonicalTransform ? cursorTransform?.replaceAll(',', ', ').replace(', 0)', ', 0px)') : cursorTransform,
+    set: value => { transformWrites++; cursorTransform = value; },
+  });
   const inputClasses = new Set();
   const body = { classList: { add: name => inputClasses.add(name), remove: name => inputClasses.delete(name) } };
   let overControl = false, overPip = false, overSourcePanel = false, overEmbedControl = false;
@@ -132,6 +137,11 @@ test('local pointer priority preserves phone swipes, scrolling, and player gestu
   const settledRequests = drawRequests;
   for (let i = 0; i < 60; i++) draw();
   assert.equal(drawRequests, settledRequests, 'A settled pointer must stop requesting animation frames');
+  canonicalTransform = true;
+  const settledWrites = transformWrites;
+  for (let i = 0; i < 60; i++) draw();
+  assert.equal(transformWrites, settledWrites, 'CSSOM transform serialization must not trigger repeated style writes');
+  canonicalTransform = false;
   overControl = true; draw();
   assert.equal(cursorClasses.has('is-hovering'), true, 'The virtual phone pointer detects interactive controls');
   receive({ type: 'activate' });
