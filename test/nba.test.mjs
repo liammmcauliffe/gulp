@@ -166,7 +166,7 @@ test('Sports returns to the top with shared refresh feedback and waits for an ex
   const events = [], scrolls = [], attributes = {};
   const toggle = { setAttribute: (key, value) => { attributes[key] = value; }, getAttribute: key => attributes[key], addEventListener() {} };
   const elements = {
-    '#games': { childElementCount: 0, children: [], setAttribute() {}, querySelectorAll: () => [], replaceChildren(...children) { this.children = children; this.childElementCount = children.length; } },
+    '#games': { childElementCount: 0, children: [], setAttribute() {}, querySelectorAll() { return this.children; }, replaceChildren(...children) { this.children = children; this.childElementCount = children.length; } },
     '#games-status': { dataset: {} }, '#games-message': {}, '#games-hint': {}, '#prefer-direct': toggle,
     '#sport-title': {}, '#watch': { hidden: false },
     '.tv-canvas': { setAttribute() {}, scrollTo: options => scrolls.push(options) },
@@ -182,7 +182,7 @@ test('Sports returns to the top with shared refresh feedback and waits for an ex
       querySelector: selector => elements[selector],
       addEventListener() {},
       dispatchEvent: event => events.push(event.type),
-      createElement: tag => ({ className: '', classList: { add() {}, remove() {} }, style: { setProperty() {} }, dataset: {}, append() {}, appendChild() {}, setAttribute() {}, addEventListener() {} }),
+      createElement: tag => ({ className: '', classList: { add() {}, remove() {} }, style: { setProperty() {} }, dataset: {}, children: [], scrollLeft: 0, get lastElementChild() { return this.children.at(-1); }, append(...children) { this.children.push(...children); }, setAttribute() {}, addEventListener() {} }),
     },
     fetch: async url => {
       if (String(url).includes('/api/schedule')) return { ok: false };
@@ -224,4 +224,14 @@ test('Sports returns to the top with shared refresh feedback and waits for an ex
   assert.equal(elements['#games-message'].textContent, 'No games scheduled');
   assert.equal(elements['#games-hint'].textContent, 'Select Sports to check again.');
   assert.equal(elements['#games-status'].dataset.loading, 'false');
+  const game = { id: 'game', title: 'A live game', status: 'live', date: Date.now(), teams: [], networks: [] };
+  const first = sports.refresh(); resolveLoad([game]); await first;
+  const originalShelf = elements['#games'].children[0];
+  originalShelf.lastElementChild.scrollLeft = 120;
+  const unchanged = sports.refresh(); resolveLoad([{ ...game }]); await unchanged;
+  assert.equal(elements['#games'].children[0], originalShelf, 'Minute refreshes keep unchanged cards and their decoded images');
+  assert.equal(originalShelf.lastElementChild.scrollLeft, 120, 'Retained shelves keep their horizontal scroll');
+  const changed = sports.refresh(); resolveLoad([{ ...game, title: 'Updated game title' }]); await changed;
+  assert.notEqual(elements['#games'].children[0], originalShelf, 'Changed game information still refreshes');
+  assert.equal(elements['#games'].children[0].lastElementChild.scrollLeft, 120, 'Changed shelves also retain their scroll');
 });

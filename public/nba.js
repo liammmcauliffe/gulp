@@ -366,6 +366,7 @@ export function setupSports() {
     try { localStorage.setItem('gulp:prefer-direct', String(on)); } catch { /* keep this session's choice */ }
   });
   let loading = null, timer;
+  const shelfContents = new WeakMap();
   document.title = `Gulp — ${label}`;
   document.querySelector('#sport-title').textContent = label;
   document.querySelector('.tv-canvas').setAttribute('aria-label', 'Sports games');
@@ -412,8 +413,13 @@ export function setupSports() {
       const shelves = shelvesFrom(schedule);
       showStatus(shelves.length ? '' : 'No games scheduled', shelves.length ? '' : 'Select Sports to check again.');
       // Refreshing must not throw each shelf back to its first card.
-      const kept = new Map([...games.querySelectorAll('.shelf')].map(shelf => [shelf.dataset.title, shelf.lastElementChild?.scrollLeft || 0]));
-      games.replaceChildren(...shelves.map(({ title, games: list }) => {
+      const existing = new Map([...games.querySelectorAll('.shelf')].map(shelf => [shelf.dataset.title, shelf]));
+      const next = shelves.map(({ title, games: list }) => {
+        const previous = existing.get(title);
+        // Keep decoded images and layout when a minute refresh changes nothing.
+        // Include today because upcoming labels change when midnight passes.
+        const contents = JSON.stringify([new Date().toDateString(), list]);
+        if (previous && shelfContents.get(previous) === contents) return previous;
         const shelf = el('section', 'shelf'), heading = el('h2'), row = el('ul', 'shelf-row');
         shelf.dataset.title = title;
         shelf.setAttribute('aria-label', title);
@@ -421,11 +427,14 @@ export function setupSports() {
         row.dataset.scrollRow = '';
         row.append(...list.map(game => { const item = el('li'); item.append(card(game, play)); return item; }));
         shelf.append(heading, row);
+        shelfContents.set(shelf, contents);
         return shelf;
-      }));
+      });
+      if (next.length !== games.children.length || next.some((shelf, i) => shelf !== games.children[i])) games.replaceChildren(...next);
       for (const shelf of games.children) {
         const row = shelf.lastElementChild;
-        if (row) row.scrollLeft = kept.get(shelf.dataset.title) || 0;
+        const previous = existing.get(shelf.dataset.title);
+        if (row && previous !== shelf) row.scrollLeft = previous?.lastElementChild?.scrollLeft || 0;
       }
       document.dispatchEvent(new CustomEvent('gulp:schedule'));
     } catch {
