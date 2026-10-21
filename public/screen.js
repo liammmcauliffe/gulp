@@ -440,7 +440,9 @@ function draw() {
     if (pointerTransform !== transform) {
       pointerTransform = transform;
       dot.style.transform = transform;
-      syncMouseMove();
+      // Gulp already hit-tests the hand. Keep native hover in sync at target
+      // boundaries; only a provider iframe needs OS movement on every frame.
+      if (mouseDrive || !lastMousePosition || hovered !== control || hoveredZone !== zone) syncMouseMove();
       // A hand-held phone never sits perfectly still; only a real move wakes the player controls.
       if (!awakeAt || Math.hypot(x - awakeAt.x, y - awakeAt.y) > 8) { awakeAt = { x, y }; awake(); }
     }

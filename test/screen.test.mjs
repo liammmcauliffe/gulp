@@ -294,6 +294,18 @@ test('local pointer priority preserves phone swipes, scrolling, and player gestu
   clock += 4000;
   receive({ type: 'calibrate', direction: direction(0, 0) });
 
+  receive({ type: 'aim', direction: direction(3, 0) });
+  for (let i = 0; i < 20; i++) draw();
+  const browsingMoves = sent.filter(message => message.action === 'move').length;
+  receive({ type: 'aim', direction: direction(6, 0) });
+  for (let i = 0; i < 20; i++) draw();
+  assert.equal(sent.filter(message => message.action === 'move').length, browsingMoves, 'Moving within the same page target must not duplicate every hand frame through the OS mouse');
+  overControl = true;
+  receive({ type: 'aim', direction: direction(12, 0) }); draw();
+  assert.ok(sent.filter(message => message.action === 'move').length > browsingMoves, 'Entering a control still updates native hover');
+  overControl = false;
+  receive({ type: 'calibrate', direction: direction(0, 0) });
+
   documentListeners['gulp:mouse-mode']({ detail: { on: true } });
   receive({ type: 'aim', direction: direction(0, 0) });
   for (let i = 0; i < 60; i++) draw();
