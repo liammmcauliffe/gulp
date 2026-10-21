@@ -166,12 +166,22 @@ test('local pointer priority preserves phone swipes, scrolling, and player gestu
   const previousPointer = elements.get('dot').style.transform;
   for (let i = 0; i < 60; i++) draw();
   assert.notEqual(elements.get('dot').style.transform, previousPointer, 'Aiming must continue during the swipe');
+  assert.equal(hitTests.length, swipeHitTests, 'Hover detection must not hit-test moving shelves on every swipe frame');
+  overControl = true;
+  receive({ type: 'activate' });
+  assert.equal(activations, 2, 'A tap still checks the current control while swipe hover is held');
+  overControl = false;
+  const swipeTapHitTests = hitTests.length;
   receive({ type: 'scroll', dx: .05, dy: 0 });
   assert.equal(rows[0].scrollLeft, 0, 'Moving the pointer must not redirect an ongoing swipe');
   assert.equal(rows[1].scrollLeft, 288);
   receive({ type: 'scroll', dx: 0, dy: 0, end: true, vx: 0, vy: 0 });
+  step(); draw();
+  assert.equal(hitTests.length, swipeTapHitTests, 'Hover stays held while the released swipe is snapping');
   runFrames();
   assert.equal(rows[1].scrollLeft, 400, 'A slow release settles on the nearest card');
+  draw();
+  assert.equal(hitTests.length, swipeTapHitTests + 1, 'Hover checks the current target again when the snap finishes');
 
   receive({ type: 'scroll', dx: 0, dy: 0, begin: true });
   receive({ type: 'scroll', dx: .1, dy: 0 });

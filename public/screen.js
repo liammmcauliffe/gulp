@@ -435,10 +435,12 @@ function draw() {
       if (!moving) position = { ...target };
     }
     const { x, y } = pointerPoint();
-    // Read the hit target once, before any style writes can invalidate browser layout.
-    const hit = document.elementFromPoint(x, y);
-    const control = hit?.closest('a, button, input, textarea, select, summary, [role="button"]');
-    const zone = hit?.closest('[data-hover]');
+    // A captured swipe and its snap own the scroll surface. Hold hover until they
+    // finish: hit-testing moving shelves is expensive on the Pi. Taps check afresh.
+    const scrolling = !localPointer && !mouseDrive && axis && (scrollHit || glides.has(page) || glides.has(scrollRow));
+    const hit = scrolling ? null : document.elementFromPoint(x, y);
+    const control = scrolling ? hovered : hit?.closest('a, button, input, textarea, select, summary, [role="button"]');
+    const zone = scrolling ? hoveredZone : hit?.closest('[data-hover]');
     const transform = `translate3d(${Math.round(x * 4) / 4}px,${Math.round(y * 4) / 4}px,0)`;
     // CSSOM serializes transforms differently across Chromium versions; compare our own value.
     if (pointerTransform !== transform) {
