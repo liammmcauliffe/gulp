@@ -1,0 +1,217 @@
+{
+  "collection": "Disney+ — Choose Avatar — Featured",
+  "source": "https://www.disneyplus.com/",
+  "imageCount": 19,
+  "images": [
+    {
+      "order": 1,
+      "name": "Jessie",
+      "file": "jessie.png",
+      "sourceUrl": "https://prod-ripcut-delivery.disney-plus.net/v1/variant/disney/AAE6005A7378AC6AE1F26A5B395768901728B2BC3904A4089D28603FEE8D66C1/scale?width=600&aspectRatio=1.00&format=png",
+      "width": 600,
+      "height": 600,
+      "bytes": 131875,
+      "sha256": "96fae1e4556981846fefb7d4b49f866bd01b9c62b4a5df4b43cee7fa7b738580",
+      "sourceOrder": 1
+    },
+    {
+      "order": 2,
+      "name": "Buzz Lightyear",
+      "file": "buzz-lightyear.png",
+      "sourceUrl": "https://prod-ripcut-delivery.disney-plus.net/v1/variant/disney/70CA3BB2E3CD3595775F70DC4BF574280878C318B6DDB844EACD91A4D64C7E18/scale?width=600&aspectRatio=1.00&format=png",
+      "width": 600,
+      "height": 600,
+      "bytes": 107811,
+      "sha256": "c100f2d44842f74fa07afa15ca393ce85f9f898a3095c6cc341b476ec3e373e7",
+      "sourceOrder": 2
+    },
+    {
+      "order": 3,
+      "name": "Woody",
+      "file": "woody.png",
+      "sourceUrl": "https://prod-ripcut-delivery.disney-plus.net/v1/variant/disney/15B4C84A196FE149FB18220F8FD660885E09F8C652DB6BCD2BEA333C1DE2B38B/scale?width=600&aspectRatio=1.00&format=png",
+      "width": 600,
+      "height": 600,
+      "bytes": 109941,
+      "sha256": "2efde8096d6518aff4d122325955bd6523695ec59b2d47d383f4266b09e2263e",
+      "sourceOrder": 3
+    },
+    {
+      "order": 4,
+      "name": "The Mandalorian",
+      "file": "the-mandalorian.png",
+      "sourceUrl": "https://prod-ripcut-delivery.disney-plus.net/v1/variant/disney/D410E87474F239FAB2AB74A6EBB54DB4A2A7D7B841D78D672D77939A767B64CF/scale?width=600&aspectRatio=1.00&format=png",
+      "width": 600,
+      "height": 600,
+      "bytes": 142631,
+      "sha256": "0e0b08c7a0270107939980ce42bfa28e3dc15010a3b596098e927299477b42e2",
+      "sourceOrder": 4
+    },
+    {
+      "order": 5,
+      "name": "The Child",
+      "file": "the-child.png",
+      "sourceUrl": "https://prod-ripcut-delivery.disney-plus.net/v1/variant/disney/EB91E18F191774627F79D9E24A6AD183CE183FD3EF089B6AD520F1502918C3F9/scale?width=600&aspectRatio=1.00&format=png",
+      "width": 600,
+      "height": 600,
+      "bytes": 167451,
+      "sha256": "e153d34486783ce1964976e42b354ccffd3c470718fcccc3fc5a4c4baaa28e3d",
+      "sourceOrder": 5
+    },
+    {
+      "order": 6,
+      "name": "Rotta",
+      "file": "rotta.png",
+      "sourceUrl": "https://prod-ripcut-delivery.disney-plus.net/v1/variant/disney/EA71C4861FB1D990FC78E7F86A9CE5E5D9C6452EBD7005CF73FA004ECEBE809F/scale?width=600&aspectRatio=1.00&format=png",
+      "width": 600,
+      "height": 600,
+      "bytes": 188070,
+      "sha256": "f006421e1981ef1dab048f20dc1b4305ec04b8c780d96e7408c9866db30e506d",
+      "sourceOrder": 6
+    },
+    {
+      "order": 7,
+      "name": "Chad Powers",
+      "file": "chad-powers.png",
+      "sourceUrl": "https://prod-ripcut-delivery.disney-plus.net/v1/variant/disney/0EC7751F8597AAF01D50802249308A9F171828494932DB977BAEA7F88F22CBFA/scale?width=600&aspectRatio=1.00&format=png",
+      "width": 600,
+      "height": 600,
+      "bytes": 149687,
+      "sha256": "98f0390ebb971eea8a80306558bce595785baabc9d764f992ed1c6b0bd33fd92",
+      "sourceOrder": 7
+    },
+    {
+      "order": 8,
+      "name": "Stewie Griffin",
+      "file": "stewie-griffin.png",
+      "sourceUrl": "https://prod-ripcut-delivery.disney-plus.net/v1/variant/disney/A17DD966EF3DFD49515364DE885C51944F619F2B809144FD06A2792F82053B03/scale?width=600&aspectRatio=1.00&format=png",
+      "width": 600,
+      "height": 600,
+      "bytes": 98146,
+      "sha256": "ed4986963a765bd97fe6d18842f8bbbc87636e26650dd0ded81ebf549920135e",
+      "sourceOrder": 8
+    },
+    {
+      "order": 9,
+      "name": "Carmen \"Carmy\" Berzatto",
+      "file": "carmen-carmy-berzatto.png",
+      "sourceUrl": "https://prod-ripcut-delivery.disney-plus.net/v1/variant/disney/730CC11C33C81DB0E7E6038C127CDDD5DAA23257CF96BCFA73251B7612675B90/scale?width=600&aspectRatio=1.00&format=png",
+      "width": 600,
+      "height": 600,
+      "bytes": 136330,
+      "sha256": "8ad24a4860fee630f4424443ec8a913be753aefcec2ef9a9db05b4c2fb615e61",
+      "sourceOrder": 13
+    },
+    {
+      "order": 10,
+      "name": "Mabel",
+      "file": "mabel.png",
+      "sourceUrl": "https://prod-ripcut-delivery.disney-plus.net/v1/variant/disney/FABDA695B869612465A167A5164D858D4949F38871F8C14F40B729F2B79C2538/scale?width=600&aspectRatio=1.00&format=png",
+      "width": 600,
+      "height": 600,
+      "bytes": 162674,
+      "sha256": "a403d0ca932a43547dd906aacf20021ebb93b5d6106fa01e8264cea07d7b41c6",
+      "sourceOrder": 19
+    },
+    {
+      "order": 11,
+      "name": "King George",
+      "file": "king-george.png",
+      "sourceUrl": "https://prod-ripcut-delivery.disney-plus.net/v1/variant/disney/985882C7820D409E567F80F342DD0C252E4FF6770673510F66ECBC4B8D092838/scale?width=600&aspectRatio=1.00&format=png",
+      "width": 600,
+      "height": 600,
+      "bytes": 167278,
+      "sha256": "16e13c3b71d4ad70673e8084dcd4ef9d92ef024ff45b87b8f7e2c3b01e424d29",
+      "sourceOrder": 20
+    },
+    {
+      "order": 12,
+      "name": "Tom Lizard",
+      "file": "tom-lizard.png",
+      "sourceUrl": "https://prod-ripcut-delivery.disney-plus.net/v1/variant/disney/5355888B19F998B1C8793ECB62F6CF7633C0565754DB16F539E9E66C37878316/scale?width=600&aspectRatio=1.00&format=png",
+      "width": 600,
+      "height": 600,
+      "bytes": 113265,
+      "sha256": "340092b9d1d17ad71484da1986da25f867b5d1c6c0cf6eaf25db193a71bfb0e8",
+      "sourceOrder": 21
+    },
+    {
+      "order": 13,
+      "name": "JUDY HOPPS",
+      "file": "judy-hopps.png",
+      "sourceUrl": "https://prod-ripcut-delivery.disney-plus.net/v1/variant/disney/B110B2B1B3440A832D28EC405DF549E57BEF8F5E317A79561FEEF6BFA16DA4D8/scale?width=600&aspectRatio=1.00&format=png",
+      "width": 600,
+      "height": 600,
+      "bytes": 146102,
+      "sha256": "def31eeeca96d5d60fbc8f26583d68844e6e3c2f776d09459dbb63c3945f0a1a",
+      "sourceOrder": 23
+    },
+    {
+      "order": 14,
+      "name": "NICK WILDE",
+      "file": "nick-wilde.png",
+      "sourceUrl": "https://prod-ripcut-delivery.disney-plus.net/v1/variant/disney/9C9DA6CF2888C7E61D015C69933DA1CF37FCEDB03EAEE0EC5B43F1DB180AF770/scale?width=600&aspectRatio=1.00&format=png",
+      "width": 600,
+      "height": 600,
+      "bytes": 133724,
+      "sha256": "fdb90c377e4fd45d3e2f205a1e5c50cba2e436174373c0a2a1880ac1f7f24770",
+      "sourceOrder": 24
+    },
+    {
+      "order": 15,
+      "name": "Spider-Man",
+      "file": "spider-man.png",
+      "sourceUrl": "https://prod-ripcut-delivery.disney-plus.net/v1/variant/disney/FE49954B252C628EC809C68832E9137D5926C2085D58A6510F8BBA12933F7B7E/scale?width=600&aspectRatio=1.00&format=png",
+      "width": 600,
+      "height": 600,
+      "bytes": 117650,
+      "sha256": "524ca829aca09f3ea14ffe7ecd9acf28e3710711a5663a11cad1ed90e2d93cce",
+      "sourceOrder": 34
+    },
+    {
+      "order": 16,
+      "name": "Mickey Mouse",
+      "file": "mickey-mouse.png",
+      "sourceUrl": "https://prod-ripcut-delivery.disney-plus.net/v1/variant/disney/BD2FA0F3965617FC515E3CEBD3AD51C00CCFFBF98F96448EFE46B82867FCE542/scale?width=600&aspectRatio=1.00&format=png",
+      "width": 600,
+      "height": 600,
+      "bytes": 79559,
+      "sha256": "43055a5cd484cb2e609810048dc3b21f2fad1cc6efc821e56ff3fff78c95db2e",
+      "sourceOrder": 35
+    },
+    {
+      "order": 17,
+      "name": "IRON MAN",
+      "file": "iron-man.png",
+      "sourceUrl": "https://prod-ripcut-delivery.disney-plus.net/v1/variant/disney/52A0BB56BCB3FE9A976B4F16FEE3E64500F9A45DC0966B8CF85E42FACA9B4400/scale?width=600&aspectRatio=1.00&format=png",
+      "width": 600,
+      "height": 600,
+      "bytes": 129071,
+      "sha256": "274da2fc4ec9de9da645b58097a6289021351273b0af0ec9d2d80a6a887470f5",
+      "sourceOrder": 36
+    },
+    {
+      "order": 18,
+      "name": "Bender",
+      "file": "bender.png",
+      "sourceUrl": "https://prod-ripcut-delivery.disney-plus.net/v1/variant/disney/3CD4437CA70AFFA118DE689B0745D28BEE921C5B1A5EA448D1636830042C43CC/scale?width=600&aspectRatio=1.00&format=png",
+      "width": 600,
+      "height": 600,
+      "bytes": 64087,
+      "sha256": "ca4ead2dc759477d641522e91f386ac71e0b8fbc3dc04c1d78aab7bcccad4d88",
+      "sourceOrder": 37
+    },
+    {
+      "order": 19,
+      "name": "Penguin",
+      "file": "penguin.png",
+      "sourceUrl": "https://prod-ripcut-delivery.disney-plus.net/v1/variant/disney/4E55CCF235EA8434E6E22B7B576CEA06EEB03BE2321FF9F1AFA0AF12CA6B1DEB/scale?width=600&aspectRatio=1.00&format=png",
+      "width": 600,
+      "height": 600,
+      "bytes": 150363,
+      "sha256": "3accab928aefbe93c07cadd0165c82cdccc874f16734253c65fc5d99a38ed558",
+      "sourceOrder": 38
+    }
+  ],
+  "capturedAt": "2026-10-20T06:02:07.504Z"
+}

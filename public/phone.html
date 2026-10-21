@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#000000">
+  <title>Gulp pointer</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="/style.css">
+  <script type="module" src="/phone.js"></script>
+</head>
+<body class="phone">
+  <canvas id="touch-dots" aria-hidden="true"></canvas>
+  <main id="setup">
+    <div class="prompt">
+      <div id="prompt-spin" class="prompt-spin" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" focusable="false" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2.2"><circle class="refresh-track" cx="12" cy="12" r="8.5"/><circle class="refresh-arc" cx="12" cy="12" r="8.5" pathLength="100"/></svg></div>
+      <h1 id="prompt-title">Connecting</h1>
+      <p id="status" role="status" hidden></p>
+      <button id="start" type="button" hidden>Allow motion<label class="haptic" aria-hidden="true"><input class="haptic-switch" type="checkbox" switch tabindex="-1"></label></button>
+    </div>
+  </main>
+  <div id="recenter" role="region" tabindex="0" aria-label="Swipe to scroll TV. Tap to select. Tap three times or press Enter to recenter pointer." hidden><label class="haptic" aria-hidden="true"><input class="haptic-switch" type="checkbox" switch tabindex="-1"></label></div>
+</body>
+</html>

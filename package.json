@@ -1,0 +1,22 @@
+{
+  "name": "gulp-pointer",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Live sports schedule and stream player, controlled by your iPhone.",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "start": "node server.mjs --tunnel",
+    "start:local": "node server.mjs",
+    "dev": "node --watch server.mjs --tunnel --live-reload",
+    "test": "node --test test/*.test.mjs",
+    "check": "node --check server.mjs && node --check broadcast.mjs && node --check mouse-helper.mjs && node --check public/broadcast-shared.js && node --check public/schedule-source.js && node --check public/screen.js && node --check public/snap.js && node --check public/phone.js && node --check public/nba.js && node --check public/player.js"
+  },
+  "dependencies": {
+    "hls.js": "^1.7.3",
+    "qrcode": "^1.5.4",
+    "ws": "^8.18.3"
+  }
+}

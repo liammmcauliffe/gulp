@@ -1,0 +1,221 @@
+:root{color-scheme:dark;font-family:system-ui,-apple-system,sans-serif;background:#000;color:#fff;--gutter:clamp(24px,4vw,64px);--chrome:1.35;--control-size:56px;--ease-out:cubic-bezier(.23,1,.32,1)}
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#000}
+[hidden]{display:none!important}
+.visually-hidden{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+.screen{overflow:hidden;background:#000}
+.screen,.screen *{cursor:none!important}
+.screen.is-pointer :focus{outline:none}
+.tv-canvas{position:relative;width:100%;height:100%;overflow-x:hidden;overflow-y:auto;scrollbar-width:none}
+/* Shelves fade under the header. */
+.screen-header{position:sticky;top:0;z-index:10;display:grid;grid-template-columns:1fr auto 1fr;align-items:start;gap:24px;padding:var(--gutter) var(--gutter) 40px;background:linear-gradient(#000 55%,transparent)}
+/* Chrome (nav, header buttons, player buttons, PiP ×) is sized up for the TV with one knob, --chrome.
+   zoom keeps layout and hit testing in step with the bigger size. */
+.tabs,.popout,.player-top,.playback-controls,.screen #embed-back,#embed-sources,.screen .is-pip .pip-close{zoom:var(--chrome)}
+.tabs{display:flex;gap:4px;height:var(--control-size);padding:5px;border:1px solid #262626;border-radius:999px;background:#111}
+.accounts{grid-column:1;justify-self:start}
+/* Header circles: the frosted-glass Back/× look at the nav pill's 56px height. No hover tint; the pop-out is the feedback. */
+.screen :is(.avatar,#settings,.sources-toggle){position:absolute;top:0;z-index:1;display:grid;place-items:center;width:var(--control-size);height:var(--control-size);min-height:var(--control-size);padding:0;border:0;border-radius:50%;background:none;color:#fff;outline:none}
+.screen .avatar{left:0}
+.avatar img{display:block;width:100%;height:100%;border-radius:50%;object-fit:cover;transition:transform 180ms var(--ease-out) 140ms}
+.accounts:is(:hover,.is-hovered,:has(:focus-visible:not(.is-pointer *))) .avatar img{transform:scale(.8);transition-delay:0s}
+.screen :is(#settings,.sources-toggle){right:0}
+.screen :is(.avatar,#settings,.sources-toggle):focus-visible:not(.is-pointer *){outline:2px solid #fff;outline-offset:3px}
+:is(.avatar,#settings,.sources-toggle) svg{width:24px;height:24px}
+.tabs{grid-column:2}
+.tabs a{display:flex;align-items:center;min-height:0;padding:0 clamp(20px,1.8vw,30px);border-radius:999px;color:#999;background:none;text-decoration:none;font-size:clamp(15px,1.1vw,19px);font-weight:600;transition:color 200ms ease,background-color 200ms ease}
+.tabs a:not([aria-current]):is(:hover,.is-pointed){color:#fff;background:#222;outline:none}
+.tabs a[aria-current=page]{color:#000;background:#fff}
+.tabs a:focus-visible:not(.is-pointer *){outline:2px solid #fff;outline-offset:3px}
+.header-end{grid-column:3;justify-self:end}
+/* Pop-outs: one glass sheet clipped to its button's circle; pointing at it opens the clip down and toward
+   the middle of the screen. Settings holds open while no phone is connected so the QR can be scanned. */
+.popout{position:relative;z-index:20;width:var(--control-size);height:var(--control-size)}
+/* Panels keep their original size (--panel-scale) even though their buttons grow with --chrome;
+   --circle is the button's circle in the panel's own scale, so the closed clip still matches the button exactly. */
+.popout-panel{--panel-scale:1;--panel-zoom:calc(var(--panel-scale) / var(--chrome));--circle:calc(var(--control-size) / var(--panel-zoom));--panel-radius:calc(var(--circle) / 2);--panel-inset:8px;--item-radius:max(0px,calc(var(--panel-radius) - var(--panel-inset)));zoom:var(--panel-zoom);position:absolute;top:0;right:0;display:grid;gap:4px;width:min(var(--popout-width,320px),calc((100vw - 2 * var(--gutter)) / var(--panel-scale)));min-height:var(--circle);padding:calc(var(--circle) + var(--panel-inset)) var(--panel-inset) var(--panel-inset);border-radius:var(--panel-radius);background:rgba(40,40,40,.72);backdrop-filter:blur(20px) saturate(160%);box-shadow:0 18px 50px rgba(0,0,0,.5);color:#fff;clip-path:inset(0 0 calc(100% - var(--circle)) calc(100% - var(--circle)) round var(--panel-radius));transition:clip-path 280ms var(--ease-out) 140ms,width 320ms var(--ease-out)}
+.popout.is-start .popout-panel{right:auto;left:0;clip-path:inset(0 calc(100% - var(--circle)) calc(100% - var(--circle)) 0 round var(--panel-radius))}
+.popout-panel>*{opacity:0;transition:opacity 140ms ease}
+.popout:not(.is-dismissed):is(:hover,.is-hovered,:has(:focus-visible:not(.is-pointer *)),.is-waiting) .popout-panel{clip-path:inset(0 round var(--panel-radius));transition-delay:0ms}
+.popout:not(.is-dismissed):is(:hover,.is-hovered,:has(:focus-visible:not(.is-pointer *)),.is-waiting) .popout-panel>*{opacity:1;transition-delay:90ms}
+.popout-title{position:absolute;top:0;left:22px;display:flex;align-items:center;height:var(--circle);margin:0;font-size:22px;font-weight:650;line-height:1}
+/* Name sits next to the avatar, filling the header row instead of floating on the far right. */
+.popout.is-start .popout-title{left:var(--circle);right:16px;padding-inline:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.accounts{--popout-width:280px}
+.profiles{display:grid;gap:4px}
+.screen .profile{display:flex;align-items:center;gap:12px;width:100%;min-height:max(var(--control-size),calc(2 * var(--item-radius)));padding:8px 16px 8px 8px;border-radius:var(--item-radius);background:none;color:#fff;font-size:16px;font-weight:600;text-align:left;outline:none;transition:background-color 160ms ease}
+.screen .profile:is(:hover,.is-pointed){background:rgba(255,255,255,.12)}
+.screen .profile:focus-visible:not(.is-pointer *){outline:2px solid #fff;outline-offset:-2px}
+.profile-picture{display:block;flex:none;width:40px;height:40px;border-radius:50%;object-fit:cover}
+/* The filled user icon stands in when a profile has no picture or it fails to load. */
+.screen .avatar .fallback-icon{width:26px;height:26px}
+.profile .fallback-icon{flex:none;width:40px;height:40px;padding:9px;border-radius:50%;background:rgba(255,255,255,.14)}
+:is(.avatar:has(img:not([hidden])),.profile:has(.profile-picture:not([hidden]))) .fallback-icon{display:none}
+#qr{display:block;width:85%;height:auto;aspect-ratio:1;margin:8px auto 12px;image-rendering:pixelated;border-radius:16px}
+@media(prefers-reduced-motion:reduce){.popout-panel,.popout-panel>*{transition-duration:0s}}
+@media(prefers-reduced-motion:reduce){.avatar img{transition:none}}
+/* Nested corners share a center: inner radius = outer radius minus the inset. */
+.screen .settings-panel button{width:100%;min-height:44px;padding:12px 16px;border-radius:var(--item-radius);background:none;text-align:left;font-size:15px}
+.screen .settings-panel button:is(:hover,.is-pointed){background:#222;color:#fff}
+.screen .settings-panel .settings-switch{display:flex;align-items:center;justify-content:space-between;gap:24px;min-height:76px;color:#fff}
+.settings-copy{display:grid;gap:5px}
+#prefer-direct-hint{font-size:12px;line-height:1.4;color:#999}
+.switch-track{--track-width:46px;--track-height:28px;--thumb-inset:3px;--thumb-size:calc(var(--track-height) - 2 * var(--thumb-inset));flex:none;position:relative;width:var(--track-width);height:var(--track-height);border-radius:calc(var(--track-height) / 2);background:#454545;transition:background-color 160ms ease}
+.switch-track::after{content:'';position:absolute;top:var(--thumb-inset);left:var(--thumb-inset);width:var(--thumb-size);height:var(--thumb-size);border-radius:50%;background:#fff;box-shadow:0 1px 3px #0005;transition:transform 160ms var(--ease-out)}
+[aria-checked=true]>.switch-track{background:#fff}
+[aria-checked=true]>.switch-track::after{background:#111;transform:translateX(calc(var(--track-width) - var(--track-height)))}
+.screen .settings-switch:focus-visible:not(.is-pointer *){outline:2px solid #fff;outline-offset:-2px}
+@media(prefers-reduced-motion:reduce){.switch-track,.switch-track::after{transition:none}}
+h2{margin:0;font-size:clamp(20px,2vw,28px);font-weight:550;line-height:1.3}
+/* Pull-to-refresh spinner: tucked under the header, revealed as the shelves are pulled down. */
+.schedule{position:relative;z-index:1;background:#000}
+/* Reveal the name inside the existing scroll-end padding; the footer adds no height. */
+.screen-footer{position:sticky;bottom:0;z-index:0;display:flex;align-items:flex-end;justify-content:center;height:calc(var(--gutter) + var(--schedule-scroll-end,0px));padding:0 var(--gutter) var(--gutter);overflow:hidden;pointer-events:none;color:#444}
+.screen-footer span{font-size:min(21vw,calc(var(--schedule-scroll-end,0px) * .8));font-weight:600;line-height:1;letter-spacing:.01em}
+#pull{position:absolute;top:-48px;left:50%;width:28px;height:28px;margin-left:-14px;opacity:0;color:#fff;pointer-events:none}
+#pull svg{display:block;width:100%;height:100%;transform:rotate(-90deg);transform-origin:center}
+.refresh-track{opacity:.12}
+.refresh-arc{stroke-dasharray:calc(var(--pull-progress,0) * 74) 100}
+#pull.is-spinning svg{animation:pull-spin 1s linear infinite}
+#pull.is-spinning .refresh-arc{stroke-dasharray:74 100}
+@keyframes pull-spin{from{transform:rotate(-90deg)}to{transform:rotate(270deg)}}
+@media(prefers-reduced-motion:reduce){#pull.is-spinning svg{animation:none}}
+/* Loading and recovery use the same quiet glass, white type, and arc as the app's controls. */
+#games-status,#player-status,#player-empty,#error{min-height:56px;padding:16px 22px;border-radius:28px;background:rgba(40,40,40,.72);backdrop-filter:blur(20px) saturate(160%);box-shadow:0 12px 32px rgba(0,0,0,.3);color:#fff;font-size:16px;font-weight:500;line-height:1.4}
+#games-status{display:flex;align-items:center;gap:16px;width:fit-content;max-width:calc(100% - 2 * var(--gutter));margin:8px var(--gutter) 24px}
+.notice-copy{display:grid;gap:4px;min-width:0}
+#games-message{margin:0;font-size:17px;font-weight:650;line-height:1.25;letter-spacing:-.01em}
+#games-hint{margin:0;color:#999;font-size:14px;font-weight:400;line-height:1.45}
+.notice-spinner{display:none;flex:none;width:28px;height:28px}
+[data-loading=true]>.notice-spinner{display:block;animation:pull-spin 1s linear infinite}
+.schedule:has(#pull.is-spinning) #games-status[data-loading=true]{display:none}
+.notice-spinner .refresh-arc{stroke-dasharray:74 100}
+@media(prefers-reduced-motion:reduce){[data-loading=true]>.notice-spinner{animation:none}}
+@media(prefers-reduced-transparency:reduce){#games-status,#player-status,#player-empty,#error{background:#282828;backdrop-filter:none}}
+#games{display:flex;flex-direction:column;gap:clamp(20px,3.5vh,44px)}
+.shelf h2{margin:0 var(--gutter);font-size:clamp(20px,1.6vw,28px);font-weight:650;letter-spacing:-.01em;line-height:1.2}
+.shelf-row{position:relative;display:flex;gap:clamp(16px,1.4vw,24px);margin:0;padding:18px var(--gutter) 6px;list-style:none;overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;scrollbar-width:none}
+.shelf-row>li{flex:none;width:clamp(260px,24vw,460px)}
+.card{display:flex;flex-direction:column;gap:14px;width:100%;color:#fff}
+.screen button.card{min-height:0;padding:0;border-radius:0;background:none;color:#fff;font:inherit;text-align:start}
+.thumb{position:relative;display:grid;aspect-ratio:16/9;border-radius:16px;overflow:hidden;background:#0b0b0b;transform-origin:50% 100%;transition:transform 220ms var(--ease-out)}
+.thumb::after{content:'';position:absolute;inset:0;border-radius:inherit;box-shadow:inset 0 0 0 1px rgba(255,255,255,.08);pointer-events:none;transition:box-shadow 160ms ease}
+.thumb>img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity 300ms ease}
+.thumb>img.is-loaded{opacity:1}
+/* Split of the two team colors, darkened so the crests stay the brightest thing on the card. */
+.thumb-fallback{background:linear-gradient(rgba(0,0,0,.25),rgba(0,0,0,.25)),linear-gradient(105deg,color-mix(in srgb,var(--away,#1c1c1c) 55%,#000) 50%,color-mix(in srgb,var(--home,#1c1c1c) 55%,#000) 50%)}
+.thumb-fallback img{filter:drop-shadow(0 6px 16px rgba(0,0,0,.45))}
+.thumb-fallback{display:flex;align-items:center;justify-content:center;gap:14%;padding:0 12%;color:#ccc;font-size:clamp(16px,1.3vw,22px);font-weight:600;line-height:1.3;text-align:center}
+.thumb-fallback img{width:26%;aspect-ratio:1;object-fit:contain}
+.thumb-fallback.is-studio{background:linear-gradient(145deg,#141414,#2a2a2a)}
+.studio-mark{font-size:clamp(28px,2.4vw,44px);font-weight:800;letter-spacing:.12em;line-height:1;color:#fff;text-transform:uppercase}
+.studio-mark[data-network=tnt]{color:#f37421}
+.card.is-pointed .thumb{transform:scale(1.04)}
+.card.is-pointed .thumb::after{box-shadow:inset 0 0 0 2px rgba(255,255,255,.9)}
+.pill{position:absolute;top:12px;left:12px;z-index:1;display:flex;align-items:center;gap:7px;padding:5px 10px;border-radius:999px;background:rgba(0,0,0,.6);backdrop-filter:blur(12px) saturate(160%);color:#fff;font-size:13px;font-weight:650;letter-spacing:.02em;line-height:1.2}
+.pill.live{text-transform:uppercase;letter-spacing:.06em}
+.pill.live::before{content:'';width:7px;height:7px;border-radius:50%;background:#ff3b30}
+.card-meta{display:flex;align-items:center;gap:12px;min-width:0}
+.crests{display:flex;flex:none}
+.crests img{width:30px;height:30px;padding:4px;border-radius:50%;background:#1a1a1a;object-fit:contain}
+.crests img+img{margin-left:-9px;box-shadow:0 0 0 2px #000}
+.card-text{display:flex;flex-direction:column;gap:3px;min-width:0}
+.card-title,.card-sub{overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.card-title{font-size:clamp(15px,1.15vw,19px);font-weight:600;line-height:1.3}
+.card-sub{color:#888;font-size:clamp(13px,.95vw,15px);line-height:1.3}
+@media(prefers-reduced-motion:reduce){.thumb{transition:none}.card.is-pointed .thumb{transform:none}}
+@media(prefers-reduced-transparency:reduce){.pill{background:#000;backdrop-filter:none}}
+.screen button{min-height:44px;padding:10px 16px;font-size:14px;border:0;border-radius:8px;background:#1b1b1b;color:#ddd}
+.screen button:not(.card,#settings,.avatar,.profile,.settings-switch,.player-back,#embed-back,.sources-toggle,.source-option,.playback-controls button,.pip-open,.pip-close):is(:hover,.is-pointed){outline:1px solid #777;outline-offset:-1px}
+.screen button[aria-pressed=true]{background:#fff;color:#000}
+.screen input{font:inherit;min-height:44px;color:#fff}
+.screen input[type=range]{accent-color:#fff;height:44px;margin:0}
+.screen input[type=range].is-pointed{outline:1px solid #777;border-radius:8px}
+.screen input:focus-visible:not(.is-pointer *){outline:2px solid #fff;outline-offset:4px}
+.tv-canvas::-webkit-scrollbar,.shelf-row::-webkit-scrollbar{display:none}
+#embed-shell{position:fixed;inset:0;z-index:200;background:#000}
+#embed-frame{position:absolute;inset:0;width:100%;height:100%;border:0;background:#000}
+/* Full view: the video fills everything the page is given; controls float over it and fade when idle. */
+#watch{position:fixed;inset:0;z-index:100;background:#000;overflow:hidden}
+#player{position:absolute;inset:0;width:100%;height:100%;background:#000;object-fit:contain}
+#player-empty,#player-status{position:absolute;left:50%;top:50%;margin:0;transform:translate(-50%,-50%);text-align:center}
+#player-empty{width:max-content;max-width:calc(100% - 2 * var(--gutter))}
+#player-status{top:auto;bottom:clamp(140px,18vh,200px);width:max-content;max-width:calc(100% - 2 * var(--gutter));transform:translateX(-50%)}
+#player-status:empty{display:none}
+.player-top,.player-bottom{position:absolute;left:0;right:0;z-index:1;padding:var(--gutter);transition:opacity 200ms ease}
+.player-top{top:0;z-index:auto;display:flex;align-items:center;gap:20px;padding:calc(var(--gutter) / var(--chrome));background:linear-gradient(rgba(0,0,0,.75),transparent)}
+.player-bottom{bottom:0;display:flex;flex-direction:column;gap:14px;padding-top:120px;background:linear-gradient(transparent,rgba(0,0,0,.85))}
+.stream-title{zoom:var(--chrome);position:absolute;top:calc(var(--gutter) / var(--chrome) + var(--control-size) / 2);left:calc(var(--gutter) / var(--chrome) + var(--control-size) + 16px);right:calc(var(--gutter) / var(--chrome) + var(--control-size) + 24px);z-index:2;margin:0;transform:translateY(-50%);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:rgba(255,255,255,.78);font-size:16px;font-weight:500;line-height:1.4;letter-spacing:-.01em;text-shadow:0 1px 6px rgba(0,0,0,.7);pointer-events:none;transition:opacity 200ms ease}
+.screen .player-back,.screen #embed-back{display:grid;place-items:center;width:var(--control-size);min-width:var(--control-size);min-height:var(--control-size);padding:0;border-radius:50%;background:rgba(40,40,40,.7);backdrop-filter:blur(16px) saturate(160%);color:#fff;outline:none;transition:opacity 200ms ease,background-color 160ms ease,transform 160ms var(--ease-out)}
+.screen :is(.player-back,#embed-back) svg{width:28px;height:28px}
+.player-back,#embed-back,.stream-title,.player-sources{--control-size:48px}
+.player-sources{--popout-width:340px;flex:none;margin-left:auto}
+.player-top>.player-sources{zoom:1}
+.sources-list{display:grid;gap:4px;max-height:calc(100vh - 2 * var(--gutter) - var(--circle) - 2 * var(--panel-inset));overflow-y:auto;overscroll-behavior:contain;scrollbar-width:none}
+.screen .source-option{display:flex;align-items:center;gap:16px;width:100%;min-height:64px;padding:12px 16px;border-radius:var(--item-radius);background:none;color:#fff;text-align:left;outline:none;transition:background-color 160ms ease}
+.screen .source-option:is(:hover,.is-pointed,[aria-pressed=true]){background:rgba(255,255,255,.12);color:#fff}
+.source-check{flex:none;display:grid;place-items:center;width:24px;height:24px;margin-left:auto;opacity:0}
+.source-check svg{display:block;width:24px;height:24px}
+.source-option[aria-pressed=true] .source-check{opacity:1}
+.source-copy{min-width:0;font-size:16px;font-weight:600;line-height:1.35}
+.screen .source-option:focus-visible:not(.is-pointer *){outline:2px solid #fff;outline-offset:-2px}
+@media(prefers-reduced-motion:reduce){.screen .source-option{transition:none}}
+@media(prefers-reduced-transparency:reduce){.sources-panel{background:#282828;backdrop-filter:none}}
+.timeline{display:flex;align-items:center;gap:16px}
+#seek{flex:1;min-width:60px}
+#playback-time{font-size:15px;color:#ddd;font-variant-numeric:tabular-nums;white-space:nowrap}
+.playback-controls{display:flex;align-items:center;gap:10px}
+.screen .playback-controls button{display:grid;place-items:center;width:var(--control-size);height:var(--control-size);min-height:var(--control-size);padding:0;border-radius:50%;background:rgba(40,40,40,.7);backdrop-filter:blur(16px);color:#fff;outline:none;transition:background-color 160ms ease,transform 160ms var(--ease-out)}
+.playback-controls svg{width:26px;height:26px;fill:currentColor}
+.playback-controls svg .stroke{fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round}
+#watch.is-paused .if-playing,#watch:not(.is-paused) .if-paused,#watch.is-muted .if-sound,#watch:not(.is-muted) .if-muted{display:none}
+.screen #go-live{display:inline-flex;align-items:center;gap:8px;width:auto;padding:0 20px;margin-left:auto;border-radius:999px;font-size:15px;font-weight:650;letter-spacing:.04em;line-height:1;text-transform:uppercase}
+.screen #go-live::before{content:"";flex:none;width:8px;height:8px;border-radius:50%;background:#ff3b30}
+.screen :is(.player-back,#embed-back,.playback-controls button):is(:hover,.is-pointed){background:rgba(255,255,255,.28);transform:scale(1.06)}
+.screen :is(.player-back,#embed-back,.playback-controls button):focus-visible:not(.is-pointer *){outline:2px solid #fff;outline-offset:3px}
+#volume{width:120px}
+/* Idle: after a few still seconds the controls and pointer fade, unless paused or the pointer is on a control. */
+.is-idle #watch:not(.is-paused,:has(.is-pointed,.player-sources:is(:hover,.is-hovered),:focus-visible:not(.is-pointer *))) :is(.player-top,.player-bottom,.stream-title),.is-idle #embed-shell:not(:has(.is-pointed,.player-sources:is(:hover,.is-hovered),:focus-visible:not(.is-pointer *))) :is(#embed-back,.player-sources,.stream-title){opacity:0;transition-duration:600ms}
+.is-idle:has(#watch:not([hidden],.is-pip),#embed-shell:not([hidden],.is-pip)) #dot{opacity:0!important}
+#embed-back{position:absolute;top:calc(var(--gutter) / var(--chrome));left:calc(var(--gutter) / var(--chrome));z-index:2}
+#embed-sources{position:absolute;top:calc(var(--gutter) / var(--chrome));right:calc(var(--gutter) / var(--chrome));z-index:2;transition:opacity 200ms ease}
+#embed-catch{position:absolute;inset:0;z-index:1}
+/* Picture-in-picture: the same player, shrunk to a floating card that keeps playing over the page.
+   Its spot comes from --pip-x/--pip-y (set when it's dragged); until then it sits bottom-right. */
+:is(#watch,#embed-shell).is-pip{inset:0 auto auto 0;width:clamp(544px,44vw,884px);height:auto;aspect-ratio:16/9;z-index:150;border-radius:16px;overflow:hidden;box-shadow:0 18px 50px rgba(0,0,0,.65),0 0 0 1px rgba(255,255,255,.12);translate:var(--pip-x,calc(100vw - 100% - 32px)) var(--pip-y,calc(100vh - 100% - 32px))}
+.is-pip :is(.player-top,.player-bottom,#embed-back,.player-sources,#embed-catch,#player-status){display:none}
+.is-pip .stream-title{zoom:1;inset:auto 0 0;transform:none;padding:28px 16px 14px;background:linear-gradient(transparent,rgba(0,0,0,.6));font-size:14px}
+.pip-open,.pip-close{display:none}
+.screen .is-pip .pip-open{position:absolute;inset:0;z-index:3;display:block;width:100%;height:100%;min-height:0;padding:0;border-radius:0;background:none;outline:none}
+:is(#watch,#embed-shell).is-pip:has(> .pip-open:is(:hover,.is-pointed,:focus-visible:not(.is-pointer *))){box-shadow:0 18px 50px rgba(0,0,0,.65),0 0 0 2px rgba(255,255,255,.85)}
+.screen .is-pip .pip-close{position:absolute;top:12px;right:12px;z-index:4;display:grid;place-items:center;width:52px;height:52px;min-height:52px;padding:0;border-radius:50%;background:rgba(30,30,30,.75);backdrop-filter:blur(12px);color:#fff;outline:none;transition:background-color 160ms ease,transform 160ms var(--ease-out)}
+.screen .is-pip .pip-close:is(:hover,.is-pointed){background:rgba(255,255,255,.3);transform:scale(1.08)}
+.pip-close svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round}
+/* The fingertip's outer edge (9, 1 in the 24px viewBox) sits on the hotspot. */
+#dot{position:fixed;top:0;left:0;z-index:9999;width:34px;height:34px;margin:calc(-34px / 24) 0 0 -12.75px;color:#fff;opacity:0;pointer-events:none;transform:translate3d(-100px,-100px,0);transition:opacity 120ms ease;will-change:transform}
+#dot svg{display:block;width:100%;height:100%;overflow:visible;filter:drop-shadow(0 0 1px #000) drop-shadow(0 2px 5px rgba(0,0,0,.45));transform-origin:37.5% 4.166667%;transition:scale 160ms cubic-bezier(.23,1,.32,1)}
+#dot.is-hovering svg{scale:1.15}
+@media(prefers-reduced-motion:reduce){#dot,#dot svg{transition:none}}
+#error{position:fixed;bottom:24px;left:50%;z-index:300;transform:translateX(-50%);width:fit-content;max-width:calc(100% - 32px);margin:0;text-align:center}
+.phone{--surface-inset:18px;--surface-radius:38px;display:grid;place-items:center;padding:24px;padding-bottom:max(24px,env(safe-area-inset-bottom));isolation:isolate}
+#touch-dots{position:fixed;inset:var(--surface-inset);width:calc(100% - 2 * var(--surface-inset));height:calc(100% - 2 * var(--surface-inset));border-radius:var(--surface-radius);background-color:#000;background-image:radial-gradient(circle,#484848 .85px,transparent 1.15px);background-size:18px 18px;background-position:center;pointer-events:none;z-index:-1}
+/* Connection and permission prompts sit on the dot grid in the same glass as Settings. */
+#setup{width:min(320px,100%)}
+.prompt{--prompt-inset:8px;--action-height:48px;display:grid;justify-items:center;gap:8px;padding:24px var(--prompt-inset) var(--prompt-inset);border-radius:calc(var(--action-height) / 2 + var(--prompt-inset));background:rgba(40,40,40,.72);backdrop-filter:blur(20px) saturate(160%);box-shadow:0 18px 50px rgba(0,0,0,.5);text-align:center}
+.prompt>:not(#start){max-width:calc(100% - 32px)}
+.prompt:not(:has(#start:not([hidden]))){padding-bottom:24px}
+#prompt-title{margin:0;font-size:17px;font-weight:650;letter-spacing:-.01em;line-height:1.2}
+#status{margin:0;font-size:14px;line-height:1.45;color:#999}
+.prompt-spin{width:28px;height:28px;margin-bottom:4px;color:#fff}
+.prompt-spin svg{display:block;width:100%;height:100%;transform-origin:center;animation:pull-spin 1s linear infinite}
+.prompt-spin .refresh-arc{stroke-dasharray:74 100}
+.phone #start{position:relative;width:100%;margin-top:8px;padding:0 24px;min-height:var(--action-height);border:0;border-radius:calc(var(--action-height) / 2);background:#fff;color:#000;font:inherit;font-size:16px;font-weight:600;touch-action:manipulation;cursor:pointer}
+.phone #start:disabled{opacity:.5}
+.phone #start:active{transform:scale(.97)}
+.phone #start:focus-visible{outline:2px solid #fff;outline-offset:4px}
+.haptic{position:absolute;inset:0;border-radius:inherit;-webkit-tap-highlight-color:transparent;touch-action:none}
+.haptic-switch{position:absolute;width:1px;height:1px;margin:0;visibility:hidden}
+@media(prefers-reduced-motion:reduce){.prompt-spin svg{animation:none}.phone #start:active{transform:none}}
+#recenter{position:fixed;inset:var(--surface-inset);border-radius:var(--surface-radius);clip-path:inset(0 round var(--surface-radius));background:transparent;overflow:hidden;scrollbar-width:none;overscroll-behavior:none;touch-action:none;-webkit-user-select:none;user-select:none}
+#recenter::-webkit-scrollbar{display:none}
+#recenter:focus-visible{outline:2px solid #fff;outline-offset:-4px}
