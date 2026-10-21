@@ -5,7 +5,7 @@ import { RESPONSE, lastShelfSnapScrollTop, nearest, projection, scheduleScrollEn
 
 const qr = document.querySelector('#qr'), dot = document.querySelector('#dot'), error = document.querySelector('#error');
 const page = document.querySelector('.tv-canvas'), accounts = document.querySelector('#accounts');
-let center, socket, retry, target, position, serverKey, scrollRow, axis, idle, idleTimer, awakeAt, screenOffset, hovered, hoveredZone, mouseDrive = false, lastMousePosition, pageSnapMax = 0;
+let center, socket, retry, target, position, serverKey, scrollRow, scrollHit, axis, idle, idleTimer, awakeAt, screenOffset, hovered, hoveredZone, mouseDrive = false, lastMousePosition, pageSnapMax = 0;
 let localPointer = null, localUntil = 0;
 let drawFrame = null, drawnAt = 0, hoverUntil = 0, pointerTransform;
 function requestDraw() { drawFrame ??= requestAnimationFrame(draw); }
@@ -183,7 +183,7 @@ function releasePull(velocity = 0) {
 document.addEventListener('gulp:refresh', () => {
   clearTimeout(idle);
   stopGlide(page);
-  scrollRow = null;
+  scrollRow = null; scrollHit = null;
   refreshContent();
 });
 
@@ -210,6 +210,7 @@ function releaseDismiss(view, velocity) {
 
 function settle(vx = 0, vy = 0) {
   clearTimeout(idle);
+  scrollHit = null;
   if (pip.dragging) { settlePip(-vx, -vy); return; }
   if (pull.active || pull.d) { releasePull(-vy); return; }
   if (scrollRow?.isConnected) glide(scrollRow, 'scrollLeft', rowTarget(scrollRow, scrollRow.scrollLeft + projection(vx)), vx);
@@ -290,7 +291,7 @@ function takeLocal(event, action = 'move') {
   if (first) {
     clearTimeout(idle);
     for (const element of glides.keys()) if (element !== pullSpring || !pull.refreshing) stopGlide(element);
-    scrollRow = null; axis = null; pip.dragging = false;
+    scrollRow = null; scrollHit = null; axis = null; pip.dragging = false;
     if (!pull.refreshing && (pull.active || pull.d || pull.shown)) { pull.active = false; pull.d = 0; showPull(0); }
     if (dismiss) { const view = fullView(); if (view) view.style.transform = ''; dismiss = 0; }
     syncMouseMode();
@@ -335,7 +336,7 @@ async function connect() {
       requestDraw();
       if (message.type === 'reload') { location.reload(); return; }
       if (message.type === 'calibrate') {
-        center = message.direction; scrollRow = null; target = { x: .5, y: .5 };
+        center = message.direction; scrollRow = null; scrollHit = null; target = { x: .5, y: .5 };
         if (!localPointer) position = null;
         paired(true);
         syncMouseMode();
@@ -362,14 +363,17 @@ async function connect() {
         }
       }
       if (message.type === 'scroll' && center && Number.isFinite(message.dx) && Number.isFinite(message.dy)) {
-        const { x, y } = pointerPoint(), sourcePanel = document.elementFromPoint(x, y)?.closest('.sources-list, .sources-panel');
+        // A swipe stays on its starting surface even while the phone keeps aiming.
+        if (message.begin || !scrollHit) { const { x, y } = pointerPoint(); scrollHit = document.elementFromPoint(x, y); }
+        const hit = scrollHit, sourcePanel = hit?.closest('.sources-list, .sources-panel');
+        if (message.end) scrollHit = null;
         if (sourcePanel) { sourcePanel.scrollTop += message.dy * innerHeight; return; }
         // In a full-view player, the trackpad's swipe down is the gesture into picture-in-picture.
         const view = fullView();
         if (view) { dragDismiss(view, message); return; }
         // Keep the swipe and its settle on the row where the touch began; a touch stops any glide.
         if (message.begin || !scrollRow) {
-          const { x, y } = pointerPoint(), floating = document.elementFromPoint(x, y)?.closest('.is-pip');
+          const floating = hit?.closest('.is-pip');
           if (floating) grabPip(floating); else pip.dragging = false;
           scrollRow = rowAtPointer(); axis = null;
           if (scrollRow) stopGlide(scrollRow);

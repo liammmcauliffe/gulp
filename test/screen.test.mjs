@@ -157,7 +157,9 @@ test('local pointer priority preserves phone swipes, scrolling, and player gestu
   overControl = false; draw();
 
   receive({ type: 'scroll', dx: 0, dy: 0, begin: true });
+  const swipeHitTests = hitTests.length;
   receive({ type: 'scroll', dx: .1, dy: .04 });
+  assert.equal(hitTests.length, swipeHitTests, 'An active swipe keeps its starting target instead of hit-testing the whole page for every touch sample');
   assert.equal(rows[1].scrollLeft, 192, 'The row under the pointer tracks the finger 1:1');
   assert.equal(page.scrollTop, 0, 'A mostly horizontal swipe never moves the page');
   receive({ type: 'aim', direction: direction(0, 8) });
