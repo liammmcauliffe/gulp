@@ -35,7 +35,9 @@ Open `http://localhost:4173` in Chromium. Wait for the QR code, scan it, and tes
 
 The phone remote is already implemented. For phone clicks inside provider embeds on Wayland, `ydotool` and its running `ydotoold` daemon must work for `chillhouse`, including access to the daemon’s socket. Installing the command alone is insufficient. [ydotool daemon requirements](https://github.com/ReimuNotMoe/ydotool). If your installation uses a custom socket, export its actual path as `YDOTOOL_SOCKET` before testing and creating the service below.
 
-One current implementation detail needs checking on the Pi: `mouse-helper.mjs` tries `xdotool` before `ydotool` when both are installed. A Wayland session must use the appropriate input backend; successful kiosk startup alone does not verify embed control. Validate this before relying on phone-only operation.
+Gulp selects `ydotool` for Wayland sessions even if `xdotool` is also installed. Validate phone control inside an actual embedded player before relying on phone-only operation.
+
+On this BPI-F3, Node **22.23.3** passes the application tests without runtime flags. The tested Node 24.22.0 RISC-V build crashes or misparses HTTP on this hardware; use the working Node 22 build here. The native tools are installed in `~/.local/bin`, with the Node distribution in `~/.local/opt`.
 
 Continue once Gulp, the QR, and the required phone controls work. Stop this manually started Pi server with **Ctrl+C** before starting the service in the next step.
 

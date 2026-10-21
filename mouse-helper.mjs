@@ -35,7 +35,8 @@ export function mouseAction(action, { x = 0, y = 0, dx = 0, dy = 0 } = {}) {
       return true;
     } catch { return false; }
   }
-  if (which('xdotool')) {
+  const wayland = process.env.XDG_SESSION_TYPE === 'wayland' || !!process.env.WAYLAND_DISPLAY;
+  if (!wayland && which('xdotool')) {
     if (action === 'move') return run('xdotool', ['mousemove', '--', String(Math.round(x)), String(Math.round(y))]);
     if (action === 'click') return run('xdotool', ['click', '1']);
     if (action === 'scroll') {
