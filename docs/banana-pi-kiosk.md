@@ -115,6 +115,22 @@ chmod +x ~/.local/bin/tv-kiosk.sh
 
 The TV URL stays local. Gulp generates the phone’s HTTPS URL and QR; you do not paste a temporary Cloudflare address into the kiosk script.
 
+The Pi's dedicated Gulp browser also loads [uBlock Origin 1.75.0](https://github.com/gorhill/uBlock/releases/tag/1.75.0). Its official Chromium ZIP is extracted under `~/.local/opt/ublock-origin-1.75.0/`. When recreating the launcher, retain this argument before the TV URL:
+
+```bash
+  --load-extension="$HOME/.local/opt/ublock-origin-1.75.0/uBlock0.chromium" \
+```
+
+The extension's **My rules** pane has these permanent [no-popups rules](https://github.com/gorhill/uBlock/wiki/Per-site-switches#no-popups), so pressing Play cannot leave an advertising window in front of Gulp:
+
+```text
+no-popups: localhost true
+no-popups: embed.st true
+no-popups: rockyembed.st true
+```
+
+Keep popup blocking in the browser: the provider's live player rejects sandboxed iframes. Restarting only `gulp-kiosk.service` applies browser changes without changing phone pairing.
+
 **4. Launch the kiosk when GNOME starts.**
 
 GNOME reads login startup entries from `~/.config/autostart/`. [Desktop autostart specification](https://specifications.freedesktop.org/autostart/latest/).
