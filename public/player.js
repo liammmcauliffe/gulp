@@ -41,7 +41,10 @@ export function setupPlayer() {
   })).filter(menu => menu.root);
   let choices = [], sourceButtons = [], activeUrl = '', playbackName = '';
   let hls, generation = 0, source = '', trigger, queue = [], queueIndex = 0, stallTimer, onExhausted = null;
-  const mouseMode = on => { try { document.dispatchEvent?.(new CustomEvent('gulp:mouse-mode', { detail: { on: !!on } })); } catch { /* test DOM stub */ } };
+  const mouseMode = on => {
+    document.body.classList.toggle('is-watching', !!on);
+    try { document.dispatchEvent?.(new CustomEvent('gulp:mouse-mode', { detail: { on: !!on } })); } catch { /* test DOM stub */ }
+  };
 
   function markSource(url) {
     activeUrl = url;
@@ -105,6 +108,7 @@ export function setupPlayer() {
     goLive.hidden = !live;
   }
   function expanded(active) {
+    document.body.classList.toggle('is-watching', active);
     watch.classList.toggle('is-expanded', active);
     for (const element of background) element.inert = active;
     if (active) { watch.setAttribute('role', 'dialog'); watch.setAttribute('aria-modal', 'true'); }

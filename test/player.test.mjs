@@ -49,7 +49,7 @@ test('our HLS and direct-video controls support phone sliders, live seeking, exp
   const ids = ['watch', 'player', 'watch-title', 'player-status', 'play-pause', 'mute', 'volume', 'seek', 'go-live', 'playback-time', 'player-controls', 'player-empty', 'settings', 'close-player', 'watch-pip-open', 'watch-pip-close', 'embed-shell', 'embed-frame', 'embed-title', 'embed-back', 'embed-pip-open', 'embed-pip-close', ...['watch', 'embed'].flatMap(id => [`${id}-sources`, `${id}-sources-toggle`, `${id}-sources-panel`])];
   const elements = Object.fromEntries(ids.map(id => [id, new Element()]));
   const background = [new Element(), new Element()];
-  globalThis.document = Object.assign(new EventTarget(), { querySelector: selector => elements[selector.slice(1)], querySelectorAll: () => background, createElement: () => new Element() });
+  globalThis.document = Object.assign(new EventTarget(), { body: new Element(), querySelector: selector => elements[selector.slice(1)], querySelectorAll: () => background, createElement: () => new Element() });
   globalThis.window = new EventTarget();
   class Hls {
     static Events = { MANIFEST_PARSED: 'manifest', ERROR: 'error' };
@@ -76,6 +76,7 @@ test('our HLS and direct-video controls support phone sliders, live seeking, exp
   const player = setupPlayer();
   const submit = url => player.load(url);
   player.open('A live game', elements.settings);
+  assert.ok(document.body.classList.contains('is-watching'), 'Full view suspends the covered schedule and glass panels');
   assert.equal(elements['watch-title'].textContent, 'A live game');
   assert.equal(elements.watch.hidden, false);
   assert.equal(elements.player.hidden, true, 'Opening a game without a feed leaves the video hidden');
@@ -124,11 +125,13 @@ test('our HLS and direct-video controls support phone sliders, live seeking, exp
   assert.equal(elements.watch.attributes['aria-modal'], 'true');
   assert.ok(background.every(element => element.inert));
   elements['close-player'].click();
+  assert.equal(document.body.classList.contains('is-watching'), false, 'PiP restores the browsing background');
   assert.equal(elements.watch.classList.contains('is-pip'), true, 'Back shrinks the player into PiP');
   assert.equal(elements.watch.hidden, false);
   assert.equal(video.paused, false, 'PiP keeps playing');
   assert.ok(background.every(element => !element.inert), 'The page is usable around the PiP');
   elements['watch-pip-open'].click();
+  assert.ok(document.body.classList.contains('is-watching'));
   assert.equal(elements.watch.classList.contains('is-pip'), false, 'Tapping the PiP returns to full view');
   assert.ok(background.every(element => element.inert));
   elements['close-player'].click();
@@ -138,6 +141,7 @@ test('our HLS and direct-video controls support phone sliders, live seeking, exp
   assert.equal(hls.destroyed, true, 'Switching sources releases the HLS instance');
   assert.equal(video.src, 'https://video.example/movie.mp4');
   player.close();
+  assert.equal(document.body.classList.contains('is-watching'), false);
   rejectPlay(Object.assign(new Error('blocked'), { name: 'NotAllowedError' }));
   await new Promise(setImmediate);
   assert.equal(video.paused, true);
@@ -166,6 +170,7 @@ test('our HLS and direct-video controls support phone sliders, live seeking, exp
     { label: 'Charlie 1', viewers: 0, embed: true, url: 'https://example.com/charlie' },
   ];
   player.openEmbed('A game', sources[0].url, elements.settings, { sources });
+  assert.ok(document.body.classList.contains('is-watching'), 'Provider embeds also suspend the covered background');
   assert.equal(elements['embed-title'].textContent, 'A game');
   assert.equal(elements['embed-frame'].title, 'A game');
   const panel = elements['embed-sources-panel'];
@@ -189,9 +194,11 @@ test('our HLS and direct-video controls support phone sliders, live seeking, exp
   assert.equal(elements.watch.hidden, true, 'Switching back to an embed releases the owned player');
   assert.equal(elements['embed-frame'].src, sources[0].url);
   elements['embed-back'].click();
+  assert.equal(document.body.classList.contains('is-watching'), false);
   assert.equal(elements['embed-shell'].classList.contains('is-pip'), true);
   assert.equal(elements['embed-title'].textContent, 'A game', 'PiP uses the same title as full view');
   elements['embed-pip-open'].click();
+  assert.ok(document.body.classList.contains('is-watching'));
   assert.equal(elements['embed-frame'].src, sources[0].url, 'PiP keeps the selected source');
   player.close();
   player.open('A different game', elements.settings);
