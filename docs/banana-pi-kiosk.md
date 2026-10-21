@@ -33,9 +33,9 @@ CLOUDFLARED="$(command -v cloudflared)" npm start
 
 Open `http://localhost:4173` in Chromium. Wait for the QR code, scan it, and test the existing phone pointer, scrolling, and game selection.
 
-The phone remote is already implemented. For phone clicks inside provider embeds on Wayland, `ydotool` and its running `ydotoold` daemon must work for `chillhouse`, including access to the daemon’s socket. Installing the command alone is insufficient. [ydotool daemon requirements](https://github.com/ReimuNotMoe/ydotool). If your installation uses a custom socket, export its actual path as `YDOTOOL_SOCKET` before testing and creating the service below.
+The phone remote is already implemented. On GNOME Wayland, Gulp uses a persistent Python helper with GNOME’s local input API. It requires Python 3 and its GObject bindings, both present on this Pi. This avoids `ydotool`’s intermediate jump to the top-left corner and starting a new process on every pointer move. The helper maps the primary TV monitor and does not read or transmit video. [Mutter remote desktop API](https://gitlab.gnome.org/GNOME/mutter/-/blob/main/src/org.gnome.Mutter.RemoteDesktop.xml).
 
-Gulp selects `ydotool` for Wayland sessions even if `xdotool` is also installed. Validate phone control inside an actual embedded player before relying on phone-only operation.
+Check `python3 -c 'from gi.repository import Gio, GLib'` and `echo "$XDG_CURRENT_DESKTOP"`. The service below records the GNOME desktop environment explicitly. Other Wayland desktops fall back to `ydotool`, which requires a running `ydotoold` daemon and access to its socket; X11 uses `xdotool` when available. Validate phone control inside an actual embedded player before relying on phone-only operation.
 
 On this BPI-F3, Node **22.23.3** passes the application tests without runtime flags. The tested Node 24.22.0 RISC-V build crashes or misparses HTTP on this hardware; use the working Node 22 build here. The native tools are installed in `~/.local/bin`, with the Node distribution in `~/.local/opt`.
 
@@ -57,9 +57,13 @@ WorkingDirectory=$HOME/gulp
 Environment="PATH=$PATH"
 Environment="CLOUDFLARED=$(command -v cloudflared)"
 Environment="YDOTOOL_SOCKET=${YDOTOOL_SOCKET:-/tmp/.ydotool_socket}"
+Environment="XDG_SESSION_TYPE=wayland"
+Environment="XDG_CURRENT_DESKTOP=ubuntu:GNOME"
+ExecStartPre=/bin/sh -c 'until /usr/bin/curl -sS --connect-timeout 5 --max-time 10 -o /dev/null https://api.trycloudflare.com; do sleep 3; done'
 ExecStart=$(command -v node) $HOME/gulp/server.mjs --tunnel
 Restart=on-failure
 RestartSec=5
+TimeoutStartSec=0
 
 [Install]
 WantedBy=default.target
@@ -69,7 +73,7 @@ systemctl --user daemon-reload
 systemctl --user enable --now gulp.service
 ```
 
-The socket default above is the [upstream ydotool default](https://github.com/ReimuNotMoe/ydotool/blob/master/Daemon/ydotoold.c). If your distribution changes it, set `YDOTOOL_SOCKET` to the socket used by your working daemon before creating the service. Configure that daemon to start at boot or login as well; this Gulp service does not start it.
+The socket setting is only used by the non-GNOME `ydotool` fallback. If you need that fallback, set `YDOTOOL_SOCKET` to the socket used by your working daemon and configure the daemon to start at boot. GNOME’s native helper needs neither that daemon nor root access.
 
 Check the server:
 
@@ -100,6 +104,7 @@ gulp_browser="$(command -v chromium-browser || command -v chromium)"
 exec "$gulp_browser" \
   --kiosk \
   --no-first-run \
+  --no-default-browser-check \
   --ozone-platform=wayland \
   --user-data-dir="$HOME/.config/gulp-chromium" \
   "http://localhost:4173"
@@ -128,7 +133,19 @@ X-GNOME-Autostart-enabled=true
 EOF
 ```
 
-**5. Test before rebooting.**
+**5. Keep the TV awake, then test.**
+
+Disable automatic suspension and blanking for this dedicated TV session:
+
+```bash
+gsettings set org.gnome.settings-daemon.plugins.power sleep-inactive-ac-type nothing
+gsettings set org.gnome.settings-daemon.plugins.power sleep-inactive-ac-timeout 0
+gsettings set org.gnome.settings-daemon.plugins.power sleep-inactive-battery-type nothing
+gsettings set org.gnome.settings-daemon.plugins.power sleep-inactive-battery-timeout 0
+gsettings set org.gnome.desktop.session idle-delay 0
+```
+
+Launch the kiosk:
 
 ```bash
 ~/.local/bin/tv-kiosk.sh

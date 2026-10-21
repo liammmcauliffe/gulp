@@ -3,18 +3,24 @@ import { fileURLToPath } from 'node:url';
 import { platform } from 'node:os';
 
 const swiftFile = fileURLToPath(new URL('./scripts/gulp-mouse.swift', import.meta.url));
-let swiftProc;
+const gnomeFile = fileURLToPath(new URL('./scripts/gulp-mouse-gnome.py', import.meta.url));
+let helperProc, helperRetry = 0, linuxTool;
 
 function which(bin) {
   return spawnSync('sh', ['-c', `command -v ${bin}`], { encoding: 'utf8' }).status === 0;
 }
 
-function ensureSwift() {
-  if (swiftProc && !swiftProc.killed) return swiftProc;
-  swiftProc = spawn('swift', [swiftFile], { stdio: ['pipe', 'ignore', 'ignore'] });
-  swiftProc.on('exit', () => { swiftProc = null; });
-  swiftProc.on('error', () => { swiftProc = null; });
-  return swiftProc;
+function ensureHelper(mac) {
+  if (helperProc && !helperProc.killed) return helperProc;
+  if (Date.now() < helperRetry) return null;
+  helperRetry = Date.now() + 1000;
+  const proc = spawn(mac ? 'swift' : 'python3', mac ? [swiftFile] : ['-u', gnomeFile], { stdio: ['pipe', 'ignore', 'inherit'] });
+  helperProc = proc;
+  const closed = () => { if (helperProc === proc) helperProc = null; };
+  proc.on('exit', closed);
+  proc.on('error', closed);
+  proc.stdin?.on('error', () => {});
+  return proc;
 }
 
 function run(cmd, args) {
@@ -24,9 +30,12 @@ function run(cmd, args) {
 /** Move / click / scroll the OS pointer. No-op if the platform tool is missing. */
 export function mouseAction(action, { x = 0, y = 0, dx = 0, dy = 0 } = {}) {
   const os = platform();
-  if (os === 'darwin') {
+  const wayland = process.env.XDG_SESSION_TYPE === 'wayland' || !!process.env.WAYLAND_DISPLAY;
+  const gnome = wayland && process.env.XDG_CURRENT_DESKTOP?.split(':').includes('GNOME');
+  if (os === 'darwin' || gnome) {
     try {
-      const proc = ensureSwift();
+      // GNOME moves directly to the target. ydotool's absolute mode first jumps to (0, 0).
+      const proc = ensureHelper(os === 'darwin');
       if (!proc?.stdin?.writable) return false;
       if (action === 'move') proc.stdin.write(`move ${Math.round(x)} ${Math.round(y)}\n`);
       else if (action === 'click') proc.stdin.write('click\n');
@@ -35,8 +44,8 @@ export function mouseAction(action, { x = 0, y = 0, dx = 0, dy = 0 } = {}) {
       return true;
     } catch { return false; }
   }
-  const wayland = process.env.XDG_SESSION_TYPE === 'wayland' || !!process.env.WAYLAND_DISPLAY;
-  if (!wayland && which('xdotool')) {
+  linuxTool ??= !wayland && which('xdotool') ? 'xdotool' : which('ydotool') ? 'ydotool' : '';
+  if (linuxTool === 'xdotool') {
     if (action === 'move') return run('xdotool', ['mousemove', '--', String(Math.round(x)), String(Math.round(y))]);
     if (action === 'click') return run('xdotool', ['click', '1']);
     if (action === 'scroll') {
@@ -46,7 +55,7 @@ export function mouseAction(action, { x = 0, y = 0, dx = 0, dy = 0 } = {}) {
     }
     return false;
   }
-  if (which('ydotool')) {
+  if (linuxTool === 'ydotool') {
     if (action === 'move') return run('ydotool', ['mousemove', '--absolute', '-x', String(Math.round(x)), '-y', String(Math.round(y))]);
     if (action === 'click') return run('ydotool', ['click', '0xC0']);
     if (action === 'scroll') {
@@ -59,8 +68,9 @@ export function mouseAction(action, { x = 0, y = 0, dx = 0, dy = 0 } = {}) {
 }
 
 export function stopMouseHelper() {
-  if (!swiftProc) return;
-  try { swiftProc.stdin?.write('quit\n'); } catch { /* ignore */ }
-  swiftProc.kill('SIGTERM');
-  swiftProc = null;
+  if (!helperProc) return;
+  try { helperProc.stdin?.write('quit\n'); } catch { /* ignore */ }
+  helperProc.kill('SIGTERM');
+  helperProc = null;
+  helperRetry = 0;
 }

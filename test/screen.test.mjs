@@ -43,7 +43,7 @@ test('local pointer priority preserves phone swipes, scrolling, and player gestu
   const control = { ownerDocument: { body }, focus() {}, closest: () => overEmbedControl ? control : null, classList: { add() {}, remove() {} }, click: () => { activations++; } };
   elements.get('dot').classList = { toggle: (name, active) => active ? cursorClasses.add(name) : cursorClasses.delete(name), add: name => cursorClasses.add(name), remove: name => cursorClasses.delete(name) };
   const sockets = [], timers = [], frames = new Map(), sent = [], documentListeners = {}, windowListeners = {};
-  let reloads = 0, draw, sessionKey = 'demo', frameId = 0, clock = 0;
+  let reloads = 0, draw, drawRequests = 0, sessionKey = 'demo', frameId = 0, clock = 0;
   // Two shelves resting 400px apart; rows of 400px-spaced cards, 1400px of scroll.
   const shelves = [0, 400].map(offsetTop => ({ offsetTop, offsetHeight: 360 }));
   const page = { scrollTop: 0, scrollHeight: 1800, clientHeight: 1080, style: { removeProperty() {}, setProperty() {} }, addEventListener() {}, querySelectorAll: () => shelves };
@@ -74,7 +74,7 @@ test('local pointer priority preserves phone swipes, scrolling, and player gestu
     location: { origin: 'http://localhost:4173', reload: () => { reloads++; } },
     fetch: async () => ({ ok: true, json: async () => ({ ready: true, key: sessionKey, qr: 'demo' }) }),
     WebSocket: class { static OPEN = 1; readyState = 1; constructor() { sockets.push(this); } send(data) { sent.push(JSON.parse(data)); } },
-    requestAnimationFrame: callback => { if (callback.name === 'draw') { draw = callback; return 0; } frames.set(++frameId, callback); return frameId; },
+    requestAnimationFrame: callback => { if (callback.name === 'draw') { draw = callback; drawRequests++; return 0; } frames.set(++frameId, callback); return frameId; },
     cancelAnimationFrame: id => frames.delete(id),
     setTimeout: callback => { timers.push(callback); return timers.length; }, clearTimeout() {},
   });
@@ -128,6 +128,10 @@ test('local pointer priority preserves phone swipes, scrolling, and player gestu
   assert.deepEqual(hitTests.at(-1), { x: 960, y: 540 }, 'Cursor rendering and hit testing share the centered position');
   assert.equal(elements.get('dot').style.transform, 'translate3d(960px,540px,0)');
   assert.equal(cursorClasses.has('is-hovering'), false);
+  for (let i = 0; i < 60; i++) draw();
+  const settledRequests = drawRequests;
+  for (let i = 0; i < 60; i++) draw();
+  assert.equal(drawRequests, settledRequests, 'A settled pointer must stop requesting animation frames');
   overControl = true; draw();
   assert.equal(cursorClasses.has('is-hovering'), true, 'The virtual phone pointer detects interactive controls');
   receive({ type: 'activate' });

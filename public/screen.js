@@ -5,8 +5,10 @@ import { RESPONSE, lastShelfSnapScrollTop, nearest, projection, scheduleScrollEn
 
 const qr = document.querySelector('#qr'), dot = document.querySelector('#dot'), error = document.querySelector('#error');
 const page = document.querySelector('.tv-canvas'), accounts = document.querySelector('#accounts');
-let center, socket, retry, target, position, serverKey, scrollRow, axis, idle, idleTimer, awakeAt, screenOffset, hovered, hoveredZone, mouseDrive = false, lastMouseSend = 0, pageSnapMax = 0;
+let center, socket, retry, target, position, serverKey, scrollRow, axis, idle, idleTimer, awakeAt, screenOffset, hovered, hoveredZone, mouseDrive = false, lastMousePosition, pageSnapMax = 0;
 let localPointer = null, localUntil = 0;
+let drawFrame = null, drawnAt = 0, hoverUntil = 0;
+function requestDraw() { drawFrame ??= requestAnimationFrame(draw); }
 const helperEvents = [], LOCAL_PRIORITY = 3000;
 const glides = new Map();
 // Settings offers the QR while waiting for a phone; its icon can dismiss that automatic opening.
@@ -15,6 +17,7 @@ const paired = on => {
   accounts.hidden = !on;
   if (on) { settings?.classList.remove('is-dismissed'); settingsPanel.inert = false; }
   settings?.classList.toggle('is-waiting', !on && !settings.classList.contains('is-dismissed'));
+  requestDraw();
 };
 document.querySelector('#settings')?.addEventListener('click', () => {
   if (center) return;
@@ -65,6 +68,7 @@ function glide(element, prop, to, velocity) {
     start ??= now;
     const t = now - start, done = t >= 3 * RESPONSE;
     element[prop] = done ? to : spring(from, to, velocity, t);
+    requestDraw();
     if (done) glides.delete(element); else glides.set(element, requestAnimationFrame(step));
   };
   glides.set(element, requestAnimationFrame(step));
@@ -96,7 +100,10 @@ function clampPageScroll() {
 }
 
 document.addEventListener('gulp:schedule', syncScheduleScrollEnd);
+document.addEventListener('gulp:schedule', requestDraw);
 window.addEventListener('resize', syncScheduleScrollEnd);
+window.addEventListener('resize', requestDraw);
+window.addEventListener('scroll', requestDraw, true);
 page.addEventListener('scroll', clampPageScroll, { passive: true });
 
 // Snap points are where each card or shelf would sit if it were first.
@@ -247,21 +254,22 @@ function sendMouse(message) {
 
 function syncMouseMove() {
   if (!phoneFollows() || !center || !target) return;
-  const now = performance.now();
-  if (now - lastMouseSend < 20) return;
-  lastMouseSend = now;
   const { x, y } = pointerPoint();
   // The OS mouse uses screen coordinates. A real pointer event gives the exact page → screen offset;
   // until one arrives, estimate it from the window position and the browser bars above the page.
   // ponytail: offset only, assumes 100% browser zoom; zoom would need a second sample to get the scale.
   const offset = screenOffset ?? { x: screenX + (outerWidth - innerWidth) / 2, y: screenY + outerHeight - innerHeight };
-  sendMouse({ type: 'mouse', action: 'move', x: x + offset.x, y: y + offset.y });
+  const point = { x: Math.round(x + offset.x), y: Math.round(y + offset.y) };
+  if (lastMousePosition?.x === point.x && lastMousePosition?.y === point.y) return;
+  lastMousePosition = point;
+  sendMouse({ type: 'mouse', action: 'move', ...point });
 }
 
 // Any real mouse movement over the page, ours or the helper's, measures the offset; the catch layer
 // covers the embed until then, because moves over a cross-origin iframe never reach this page.
 const embedCatch = document.querySelector('#embed-catch');
 function syncMouseMode() {
+  lastMousePosition = null;
   const follow = phoneFollows();
   const embed = mouseDrive && !localPointer;
   if (socket?.readyState === WebSocket.OPEN) socket.send(JSON.stringify({ type: 'mouse-mode', on: follow }));
@@ -287,7 +295,7 @@ function takeLocal(event, action = 'move') {
     syncMouseMode();
   }
   awake();
-  syncMouseMode();
+  requestDraw();
   return true;
 }
 
@@ -323,6 +331,7 @@ async function connect() {
     socket = new WebSocket(`${location.origin.replace('http', 'ws')}/connect?role=screen&key=${session.key}`);
     socket.onmessage = event => {
       const message = JSON.parse(event.data);
+      requestDraw();
       if (message.type === 'reload') { location.reload(); return; }
       if (message.type === 'calibrate') {
         center = message.direction; scrollRow = null; target = { x: .5, y: .5 };
@@ -405,44 +414,62 @@ async function connect() {
   } catch { error.textContent = 'Can’t connect to Gulp. Trying again…'; error.hidden = false; retry = setTimeout(connect, 3000); }
 }
 function draw() {
-  if (localPointer && performance.now() >= localUntil) {
-    localPointer = null;
-    syncMouseMode();
-  }
+  drawFrame = null;
+  const now = performance.now(), elapsed = drawnAt ? Math.max(0, now - drawnAt) : 16.67;
+  drawnAt = now;
+  let moving = false;
   if (localPointer || target && center) {
     if (localPointer) position = { ...localPointer };
     else {
       position ||= { ...target };
-      position.x += (target.x - position.x) * .45;
-      position.y += (target.y - position.y) * .45;
+      // Keep the same response time when the TV drops frames; settle subpixel noise exactly.
+      const blend = 1 - Math.exp(-elapsed / 28);
+      position.x += (target.x - position.x) * blend;
+      position.y += (target.y - position.y) * blend;
+      moving = Math.hypot((target.x - position.x) * innerWidth, (target.y - position.y) * innerHeight) > .1;
+      if (!moving) position = { ...target };
     }
     const { x, y } = pointerPoint();
-    const transform = `translate3d(${x}px,${y}px,0)`;
+    // Read the hit target once, before any style writes can invalidate browser layout.
+    const hit = document.elementFromPoint(x, y);
+    const control = hit?.closest('a, button, input, textarea, select, summary, [role="button"]');
+    const zone = hit?.closest('[data-hover]');
+    const transform = `translate3d(${Math.round(x * 4) / 4}px,${Math.round(y * 4) / 4}px,0)`;
     if (dot.style.transform !== transform) {
       dot.style.transform = transform;
       syncMouseMove();
       // A hand-held phone never sits perfectly still; only a real move wakes the player controls.
       if (!awakeAt || Math.hypot(x - awakeAt.x, y - awakeAt.y) > 8) { awakeAt = { x, y }; awake(); }
     }
-    const control = controlAtPointer();
-    if (hovered !== control) { hovered?.classList.remove('is-pointed'); control?.classList.add('is-pointed'); hovered = control; }
+    if (hovered !== control) {
+      hovered?.classList.remove('is-pointed'); control?.classList.add('is-pointed'); hovered = control;
+      dot.classList.toggle('is-hovering', !!control);
+      hoverUntil = now + 350;
+    }
     // [data-hover] areas (Settings) open while the phone pointer is anywhere over them, like a mouse :hover.
-    const zone = document.elementFromPoint(x, y)?.closest('[data-hover]');
-    if (hoveredZone !== zone) { hoveredZone?.classList.remove('is-hovered'); zone?.classList.add('is-hovered'); hoveredZone = zone; }
-    dot.classList.toggle('is-hovering', !!control);
-    dot.style.opacity = '1';
-    dot.hidden = false;
-  } else { dot.style.opacity = '0'; dot.hidden = true; hovered?.classList.remove('is-pointed'); hovered = null; hoveredZone?.classList.remove('is-hovered'); hoveredZone = null; }
-  requestAnimationFrame(draw);
+    if (hoveredZone !== zone) {
+      hoveredZone?.classList.remove('is-hovered'); zone?.classList.add('is-hovered'); hoveredZone = zone;
+      hoverUntil = now + 350;
+    }
+    if (dot.style.opacity !== '1') dot.style.opacity = '1';
+    if (dot.hidden) dot.hidden = false;
+  } else {
+    if (dot.style.opacity !== '0') dot.style.opacity = '0';
+    if (!dot.hidden) dot.hidden = true;
+    if (hovered) { hovered.classList.remove('is-pointed'); hovered = null; dot.classList.toggle('is-hovering', false); }
+    hoveredZone?.classList.remove('is-hovered'); hoveredZone = null;
+  }
+  if (moving || now < hoverUntil) requestDraw();
 }
 document.addEventListener('gulp:mouse-mode', event => {
   mouseDrive = !!event.detail?.on;
   syncMouseMode();
   syncMouseMove();
+  requestDraw();
 });
 window.addEventListener('pagehide', () => {
   clearTimeout(retry);
   if (socket?.readyState === WebSocket.OPEN) socket.send(JSON.stringify({ type: 'mouse-mode', on: false }));
   socket?.close();
 });
-const sports = setupSports(); connect(); draw(); awake();
+const sports = setupSports(); connect(); requestDraw(); awake();
