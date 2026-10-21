@@ -263,7 +263,7 @@ function card(game, play) {
     mark.textContent = studioNet;
     mark.dataset.network = studioNet;
     fallback.append(mark);
-  } else fallback.textContent = game.title;
+  } else fallback.append(Object.assign(el('span', 'thumb-label'), { textContent: game.title }));
   teams.forEach((team, i) => { if (team.color) fallback.style.setProperty(i ? '--home' : '--away', team.color); });
   if (crests.length >= 2 && !teams.some(team => team.color)) {
     fallback.style.setProperty('--away', '#252525');
