@@ -94,7 +94,7 @@ test('our HLS and direct-video controls support phone sliders, live seeking, exp
   video.dispatchEvent(new Event('canplay'));
   assert.equal(stalls.size, 0, 'Decoded video clears the startup timeout');
   assert.equal(video.paused, false);
-  assert.equal(video.muted, true);
+  assert.equal(video.muted, false, 'New streams start with sound');
   assert.equal(elements['play-pause'].attributes['aria-label'], 'Pause');
   assert.equal(elements.watch.classList.contains('is-paused'), false, 'The pause icon shows while playing');
   assert.equal(elements['player-status'].textContent, '');

@@ -39,7 +39,8 @@ test('local pointer priority preserves phone swipes, scrolling, and player gestu
     set: value => { transformWrites++; cursorTransform = value; },
   });
   const inputClasses = new Set();
-  const body = { classList: { add: name => inputClasses.add(name), remove: name => inputClasses.delete(name) } };
+  let idleRemovals = 0;
+  const body = { classList: { contains: name => inputClasses.has(name), add: name => inputClasses.add(name), remove: name => { if (name === 'is-idle') idleRemovals++; inputClasses.delete(name); } } };
   let overControl = false, overPip = false, overSourcePanel = false, overEmbedControl = false;
   const sourcePanel = { scrollTop: 0 };
   // A 480×270 PiP resting bottom-right of a 1920×1080 screen.
@@ -321,6 +322,9 @@ test('local pointer priority preserves phone swipes, scrolling, and player gestu
   assert.equal(sent.filter(message => message.action === 'click').length, clicksBeforeHelperEcho + 2, 'The helper click is also recognized as phone input');
 
   windowListeners.pointermove(localEvent(450, 275)); draw();
+  const removalsBeforeMove = idleRemovals;
+  windowListeners.pointermove(localEvent(450, 275)); draw();
+  assert.equal(idleRemovals, removalsBeforeMove, 'Pointer movement must not rewrite the body class when controls are already awake');
   assert.equal(elements.get('dot').style.transform, 'translate3d(450px,275px,0)');
   assert.equal(sent.filter(message => message.type === 'mouse-mode').at(-1).on, false, 'Local input disarms the phone OS mouse');
   const clicksBeforeLocal = sent.filter(message => message.action === 'click').length;

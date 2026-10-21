@@ -312,7 +312,7 @@ window.addEventListener('wheel', event => { takeLocal(event, 'scroll'); }, { pas
 
 // Players hide their controls and the pointer after a few still seconds, like other video apps.
 function awake() {
-  document.body?.classList.remove('is-idle');
+  if (document.body?.classList.contains('is-idle')) document.body.classList.remove('is-idle');
   clearTimeout(idleTimer);
   idleTimer = setTimeout(() => document.body?.classList.add('is-idle'), 2500);
 }

@@ -201,7 +201,7 @@ export function setupPlayer() {
     }
     const current = generation;
     source = url;
-    video.muted = true;
+    video.muted = false;
     video.hidden = false;
     $('player-controls').hidden = false;
     $('player-empty').hidden = true;

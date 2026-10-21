@@ -105,6 +105,7 @@ exec "$gulp_browser" \
   --kiosk \
   --no-first-run \
   --no-default-browser-check \
+  --autoplay-policy=no-user-gesture-required \
   --ozone-platform=wayland \
   --user-data-dir="$HOME/.config/gulp-chromium" \
   "http://localhost:4173"
@@ -114,6 +115,8 @@ chmod +x ~/.local/bin/tv-kiosk.sh
 ```
 
 The TV URL stays local. Gulp generates the phone’s HTTPS URL and QR; you do not paste a temporary Cloudflare address into the kiosk script.
+
+The autoplay flag lets a selected stream start with sound when the phone activates Gulp's controls. This applies to the dedicated kiosk profile. [Chromium autoplay policy](https://developer.chrome.com/blog/autoplay/).
 
 The Pi's dedicated Gulp browser also loads [uBlock Origin 1.75.0](https://github.com/gorhill/uBlock/releases/tag/1.75.0). Its official Chromium ZIP is extracted under `~/.local/opt/ublock-origin-1.75.0/`. When recreating the launcher, retain this argument before the TV URL:
 
@@ -168,6 +171,8 @@ Launch the kiosk:
 ```
 
 Chromium should open Gulp fullscreen. Scan the QR, open a game, test the player controls, return to browsing, and test PiP. Check sound and video on the actual TV; this guide does not establish hardware video acceleration or codec support on the Pi.
+
+For TV audio, run `wpctl status` and inspect the output nodes with `wpctl inspect ID`. Choose the node whose `alsa.card_name` is `snd-hdmi`, then run `wpctl set-default ID` and `wpctl set-mute ID 0` using that node's ID. Both outputs are named “Built-in Audio Stereo” on this Pi, so the name alone is misleading. WirePlumber saves the HDMI default; Chromium's existing audio stream also follows it. The `snd-es8326` output is the analog jack.
 
 After that works, save any open work and reboot:
 
